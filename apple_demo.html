@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beer-Lambert Law - Apple Imaging Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .info-panel {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-panel p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.9em;
+        }
+
+        .formula-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .control-group .value-display {
+            font-size: 0.85em;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Beer-Lambert Law: Apple Imaging</h1>
+        <p class="subtitle">Understanding Light Absorption Through Different Colored Apples</p>
+
+        <div class="info-panel">
+            <h3>About the Beer-Lambert Law</h3>
+            <p>
+                The Beer-Lambert Law describes how light is absorbed as it passes through a material. 
+                Different colored apples contain different pigments (like anthocyanins in red apples, 
+                carotenoids in orange apples, and chlorophyll breakdown products in bananas) that absorb 
+                different wavelengths of light.
+            </p>
+            <div class="formula-box">
+                <strong>A = ε × c × l</strong><br>
+                Where:<br>
+                • A = Absorbance (how much light is absorbed)<br>
+                • ε = Extinction coefficient (how strongly the pigment absorbs at this wavelength)<br>
+                • c = Concentration of the pigment<br>
+                • l = Path length (thickness of the apple slice)<br><br>
+                <strong>Transmitted Light:</strong> I = I₀ × 10^(-A)<br>
+                Where I₀ is the incident light intensity
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Light Wavelength (nm):</label>
+                <input type="range" id="wavelength" min="400" max="700" value="550" step="10">
+                <span class="value-display" id="wavelengthValue">550 nm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Apple Thickness (cm):</label>
+                <input type="range" id="thickness" min="0.5" max="3.0" value="1.5" step="0.1">
+                <span class="value-display" id="thicknessValue">1.5 cm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Incident Light Intensity:</label>
+                <input type="range" id="intensity" min="0.5" max="1.0" value="1.0" step="0.01">
+                <span class="value-display" id="intensityValue">1.00</span>
+            </div>
+        </div>
+
+        <div id="canvas-container"></div>
+
+        <a href="index.html" class="back-link">← Back to Background Summary</a>
+    </div>
+
+    <script>
+        // Extinction coefficients for different apple pigments at different wavelengths
+        // Simplified model for educational purposes
+        function getExtinctionCoefficient(appleType, wavelength) {
+            // Red apple: anthocyanins (absorb green/blue, transmit red)
+            // Orange apple: carotenoids (absorb blue, transmit orange/red)
+            // Banana: chlorophyll breakdown products (absorb blue/violet, transmit yellow)
+            
+            if (appleType === 'red') {
+                // Red apples absorb green (500-600nm) strongly
+                if (wavelength >= 500 && wavelength <= 600) {
+                    return 2.5 - Math.abs(wavelength - 550) * 0.02; // Peak around 550nm
+                } else if (wavelength >= 600 && wavelength <= 700) {
+                    return 0.3; // Weak absorption in red
+                } else {
+                    return 1.5; // Moderate absorption in blue/violet
+                }
+            } else if (appleType === 'orange') {
+                // Orange apples absorb blue (400-500nm) strongly
+                if (wavelength >= 400 && wavelength <= 500) {
+                    return 2.0 - Math.abs(wavelength - 450) * 0.015; // Peak around 450nm
+                } else if (wavelength >= 500 && wavelength <= 700) {
+                    return 0.2; // Weak absorption in green/red
+                } else {
+                    return 1.0;
+                }
+            } else if (appleType === 'banana') {
+                // Bananas absorb blue/violet (400-500nm) strongly
+                if (wavelength >= 400 && wavelength <= 500) {
+                    return 2.2 - Math.abs(wavelength - 450) * 0.018; // Peak around 450nm
+                } else if (wavelength >= 500 && wavelength <= 700) {
+                    return 0.15; // Very weak absorption in green/yellow/red
+                } else {
+                    return 1.2;
+                }
+            }
+            return 1.0;
+        }
+
+        // Calculate absorbance using Beer-Lambert Law
+        function calculateAbsorbance(extinctionCoeff, concentration, pathLength) {
+            return extinctionCoeff * concentration * pathLength;
+        }
+
+        // Calculate transmitted light intensity
+        function calculateTransmitted(intensity, absorbance) {
+            return intensity * Math.pow(10, -absorbance);
+        }
+
+        // Convert wavelength to RGB color for visualization
+        function wavelengthToRGB(wavelength) {
+            let r, g, b;
+            if (wavelength >= 380 && wavelength < 440) {
+                r = -(wavelength - 440) / (440 - 380);
+                g = 0.0;
+                b = 1.0;
+            } else if (wavelength >= 440 && wavelength < 490) {
+                r = 0.0;
+                g = (wavelength - 440) / (490 - 440);
+                b = 1.0;
+            } else if (wavelength >= 490 && wavelength < 510) {
+                r = 0.0;
+                g = 1.0;
+                b = -(wavelength - 510) / (510 - 490);
+            } else if (wavelength >= 510 && wavelength < 580) {
+                r = (wavelength - 510) / (580 - 510);
+                g = 1.0;
+                b = 0.0;
+            } else if (wavelength >= 580 && wavelength < 645) {
+                r = 1.0;
+                g = -(wavelength - 645) / (645 - 580);
+                b = 0.0;
+            } else if (wavelength >= 645 && wavelength <= 780) {
+                r = 1.0;
+                g = 0.0;
+                b = 0.0;
+            } else {
+                r = 0.0;
+                g = 0.0;
+                b = 0.0;
+            }
+
+            // Adjust brightness
+            let factor = 1.0;
+            if (wavelength >= 380 && wavelength < 420) {
+                factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380);
+            } else if (wavelength >= 420 && wavelength <= 700) {
+                factor = 1.0;
+            } else if (wavelength > 700 && wavelength <= 780) {
+                factor = 0.3 + 0.7 * (780 - wavelength) / (780 - 700);
+            }
+
+            return {
+                r: Math.round(255 * Math.max(0, Math.min(1, r * factor))),
+                g: Math.round(255 * Math.max(0, Math.min(1, g * factor))),
+                b: Math.round(255 * Math.max(0, Math.min(1, b * factor)))
+            };
+        }
+
+        let apples = [
+            { type: 'red', name: 'Red Apple', concentration: 0.8, color: [220, 50, 50] },
+            { type: 'orange', name: 'Orange Apple', concentration: 0.7, color: [255, 165, 0] },
+            { type: 'banana', name: 'Banana', concentration: 0.6, color: [255, 220, 100] }
+        ];
+
+        function setup() {
+            const canvas = createCanvas(1200, 700);
+            canvas.parent('canvas-container');
+        }
+
+        function draw() {
+            background(240);
+            
+            const wavelength = parseInt(document.getElementById('wavelength').value);
+            const thickness = parseFloat(document.getElementById('thickness').value);
+            const intensity = parseFloat(document.getElementById('intensity').value);
+            
+            document.getElementById('wavelengthValue').textContent = wavelength + ' nm';
+            document.getElementById('thicknessValue').textContent = thickness.toFixed(1) + ' cm';
+            document.getElementById('intensityValue').textContent = intensity.toFixed(2);
+            
+            // Get light color
+            const lightRGB = wavelengthToRGB(wavelength);
+            const lightColor = color(lightRGB.r, lightRGB.g, lightRGB.b);
+            
+            // Draw title
+            fill(50);
+            textSize(24);
+            textAlign(CENTER);
+            text('Beer-Lambert Law: Light Absorption Through Apples', width / 2, 30);
+            
+            // Draw incident light
+            fill(lightColor);
+            noStroke();
+            rect(50, 80, 100, 500);
+            fill(50);
+            textSize(14);
+            textAlign(CENTER);
+            text('Incident\nLight', 100, 600);
+            text(`λ = ${wavelength}nm`, 100, 620);
+            text(`I₀ = ${intensity.toFixed(2)}`, 100, 640);
+            
+            let xPos = 200;
+            const appleWidth = 250;
+            const appleHeight = 150;
+            const spacing = 50;
+            
+            // Draw each apple
+            for (let i = 0; i < apples.length; i++) {
+                const apple = apples[i];
+                const appleY = 200 + i * (appleHeight + spacing);
+                
+                // Calculate absorption
+                const extinctionCoeff = getExtinctionCoefficient(apple.type, wavelength);
+                const absorbance = calculateAbsorbance(extinctionCoeff, apple.concentration, thickness);
+                const transmitted = calculateTransmitted(intensity, absorbance);
+                const absorbed = intensity - transmitted;
+                
+                // Draw apple
+                fill(apple.color[0], apple.color[1], apple.color[2]);
+                stroke(100);
+                strokeWeight(2);
+                ellipse(xPos + appleWidth / 2, appleY + appleHeight / 2, appleWidth * 0.8, appleHeight);
+                
+                // Draw light beam going through
+                const beamStartX = xPos - 50;
+                const beamEndX = xPos + appleWidth + 50;
+                const beamY = appleY + appleHeight / 2;
+                
+                // Incident beam
+                stroke(lightColor);
+                strokeWeight(8);
+                line(beamStartX, beamY, xPos, beamY);
+                
+                // Transmitted beam (dimmer)
+                const transmittedColor = color(
+                    lightRGB.r * transmitted,
+                    lightRGB.g * transmitted,
+                    lightRGB.b * transmitted
+                );
+                stroke(transmittedColor);
+                strokeWeight(8 * transmitted);
+                line(xPos + appleWidth, beamY, beamEndX, beamY);
+                
+                // Draw absorption indicator
+                const absBarX = xPos + appleWidth + 80;
+                const absBarY = appleY + appleHeight / 2 - 30;
+                fill(200, 50, 50);
+                noStroke();
+                rect(absBarX, absBarY, 20, absorbed * 60);
+                
+                // Labels and values
+                fill(50);
+                textSize(16);
+                textAlign(LEFT);
+                text(apple.name, xPos, appleY - 10);
+                
+                textSize(12);
+                text(`ε = ${extinctionCoeff.toFixed(2)}`, xPos, appleY + 20);
+                text(`c = ${apple.concentration.toFixed(2)}`, xPos, appleY + 35);
+                text(`l = ${thickness.toFixed(1)} cm`, xPos, appleY + 50);
+                
+                fill(200, 50, 50);
+                text(`A = ${absorbance.toFixed(2)}`, xPos, appleY + 70);
+                
+                fill(50, 150, 50);
+                text(`I = ${transmitted.toFixed(3)}`, xPos, appleY + 85);
+                text(`(${(transmitted / intensity * 100).toFixed(1)}% transmitted)`, xPos, appleY + 100);
+                
+                fill(200, 50, 50);
+                text(`Absorbed: ${(absorbed / intensity * 100).toFixed(1)}%`, absBarX + 30, absBarY + 10);
+            }
+            
+            // Draw legend
+            fill(50);
+            textSize(14);
+            textAlign(LEFT);
+            const legendY = 650;
+            text('Legend:', 50, legendY);
+            fill(200, 50, 50);
+            rect(120, legendY - 10, 15, 10);
+            fill(50);
+            text('Absorbed Light', 140, legendY);
+            
+            fill(50, 150, 50);
+            rect(250, legendY - 10, 15, 10);
+            fill(50);
+            text('Transmitted Light', 270, legendY);
+            
+            // Draw wavelength spectrum
+            const spectrumY = 100;
+            const spectrumHeight = 30;
+            for (let w = 400; w <= 700; w += 5) {
+                const rgb = wavelengthToRGB(w);
+                stroke(rgb.r, rgb.g, rgb.b);
+                strokeWeight(5);
+                const x = map(w, 400, 700, 50, width - 50);
+                line(x, spectrumY, x, spectrumY + spectrumHeight);
+            }
+            fill(50);
+            textSize(10);
+            textAlign(CENTER);
+            text('400nm', 50, spectrumY + spectrumHeight + 15);
+            text('550nm', width / 2, spectrumY + spectrumHeight + 15);
+            text('700nm', width - 50, spectrumY + spectrumHeight + 15);
+            
+            // Draw wavelength indicator
+            stroke(255);
+            strokeWeight(2);
+            const indicatorX = map(wavelength, 400, 700, 50, width - 50);
+            line(indicatorX, spectrumY - 5, indicatorX, spectrumY + spectrumHeight + 5);
+        }
+    </script>
+</body>
+</html>
+

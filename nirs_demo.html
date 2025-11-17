@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muse S Athena NIRS Demo - Modified Beer-Lambert Law</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .control-group .value-display {
+            font-size: 0.85em;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .info-panel {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-panel p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.9em;
+        }
+
+        .formula-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .device-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .device-info h3 {
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .device-info p {
+            color: #856404;
+            font-size: 0.9em;
+            margin: 4px 0;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Muse S Athena NIRS Simulation</h1>
+        <p class="subtitle">Modified Beer-Lambert Law Interactive Demo</p>
+
+        <div class="device-info">
+            <h3>Muse S Athena Configuration</h3>
+            <p>• 2 detector pairs: Left & Right hemispheres</p>
+            <p>• Short channels (~1.2 cm): Higher intensity, mean-centered (superficial signal)</p>
+            <p>• Long channels (~3.0 cm): Lower intensity (deep brain signal)</p>
+            <p>• PPG Wavelengths: Red (660nm), Near-IR (730nm), Infrared (850nm)</p>
+            <p>• PPG Sample Rate: 64 Hz | Resolution: 20-bit</p>
+        </div>
+
+        <div class="info-panel">
+            <h3>About the Modified Beer-Lambert Law</h3>
+            <p>
+                The Modified Beer-Lambert Law (MBLL) is used in Near-Infrared Spectroscopy (NIRS) to calculate 
+                changes in hemoglobin oxygenation in tissue. Short channels measure superficial signals (skin, scalp) 
+                and are mean-centered to remove systemic artifacts. Long channels measure deeper brain tissue.
+            </p>
+            <div class="formula-box">
+                <strong>ΔOD = ε × c × d × DPF</strong><br>
+                Where:<br>
+                • ΔOD = change in optical density<br>
+                • ε = extinction coefficient (cm⁻¹·M⁻¹)<br>
+                • c = chromophore concentration change (M)<br>
+                • d = source-detector distance (cm)<br>
+                • DPF = differential pathlength factor (unitless)
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="control-group">
+                <label>Red Wavelength (nm):</label>
+                <input type="range" id="redWavelength" min="650" max="680" value="660" step="1">
+                <span class="value-display" id="redWavelengthValue">660 nm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Near-IR Wavelength (nm):</label>
+                <input type="range" id="nearIrWavelength" min="720" max="740" value="730" step="1">
+                <span class="value-display" id="nearIrWavelengthValue">730 nm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Infrared Wavelength (nm):</label>
+                <input type="range" id="irWavelength" min="840" max="860" value="850" step="1">
+                <span class="value-display" id="irWavelengthValue">850 nm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Long Channel Distance (cm):</label>
+                <input type="range" id="longDistance" min="2.5" max="4.0" value="3.0" step="0.1">
+                <span class="value-display" id="longDistanceValue">3.0 cm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Short Channel Distance (cm):</label>
+                <input type="range" id="shortDistance" min="0.8" max="1.5" value="1.2" step="0.1">
+                <span class="value-display" id="shortDistanceValue">1.2 cm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Differential Pathlength Factor (DPF):</label>
+                <input type="range" id="dpf" min="3" max="7" value="5.5" step="0.1">
+                <span class="value-display" id="dpfValue">5.5</span>
+            </div>
+
+            <div class="control-group">
+                <label>Heart Rate (bpm):</label>
+                <input type="range" id="heartRate" min="50" max="100" value="70" step="1">
+                <span class="value-display" id="heartRateValue">70 bpm</span>
+            </div>
+
+            <div class="control-group">
+                <label>Heartbeat Amplitude:</label>
+                <input type="range" id="heartbeatAmp" min="0" max="0.15" value="0.05" step="0.01">
+                <span class="value-display" id="heartbeatAmpValue">0.05</span>
+            </div>
+
+            <div class="control-group">
+                <label>Noise Level:</label>
+                <input type="range" id="noiseLevel" min="0" max="0.1" value="0.02" step="0.001">
+                <span class="value-display" id="noiseLevelValue">0.020</span>
+            </div>
+
+            <div class="control-group">
+                <label>Time Scale (seconds):</label>
+                <input type="range" id="timeScale" min="10" max="60" value="30" step="5">
+                <span class="value-display" id="timeScaleValue">30 s</span>
+            </div>
+        </div>
+
+        <div id="canvas-container"></div>
+
+        <a href="index.html" class="back-link">← Back to Background Summary</a>
+    </div>
+
+    <script>
+        // Sampling rate: 64 Hz (Muse S Athena PPG)
+        const SAMPLING_RATE = 64; // Hz
+        const SAMPLE_INTERVAL = 1.0 / SAMPLING_RATE; // seconds
+
+        // Extinction coefficients (cm⁻¹·M⁻¹) for oxyhemoglobin (HbO2) and deoxyhemoglobin (Hb)
+        // Values based on typical NIRS literature
+        function getExtinctionCoefficients(wavelength) {
+            // Extinction coefficients at specific wavelengths
+            const hbO2_660 = 0.32;   // Oxyhemoglobin at 660nm
+            const hb_660 = 0.32;     // Deoxyhemoglobin at 660nm (isosbestic point)
+            const hbO2_730 = 0.38;    // Oxyhemoglobin at 730nm
+            const hb_730 = 0.19;     // Deoxyhemoglobin at 730nm
+            const hbO2_850 = 0.25;   // Oxyhemoglobin at 850nm
+            const hb_850 = 0.18;     // Deoxyhemoglobin at 850nm
+            
+            // Interpolate based on wavelength
+            if (wavelength <= 680) {
+                // Red range (around 660nm)
+                const ratio = (wavelength - 650) / 30;
+                return {
+                    hbO2: hbO2_660 * (1 + ratio * 0.1),
+                    hb: hb_660 * (1 - ratio * 0.1)
+                };
+            } else if (wavelength <= 750) {
+                // Near-IR range (around 730nm)
+                const ratio = (wavelength - 680) / 70;
+                return {
+                    hbO2: hbO2_730 * (1 - ratio * 0.1),
+                    hb: hb_730 * (1 + ratio * 0.05)
+                };
+            } else {
+                // IR range (around 850nm)
+                const ratio = (wavelength - 800) / 50;
+                return {
+                    hbO2: hbO2_850 * (1 + ratio * 0.05),
+                    hb: hb_850 * (1 - ratio * 0.05)
+                };
+            }
+        }
+
+        // Calculate optical density change
+        function calculateOD(intensity, I0) {
+            return -Math.log(Math.max(0.01, intensity) / Math.max(0.01, I0));
+        }
+
+        // Calculate concentration changes using MBLL
+        function calculateConcentrations(odRed, odIR, redWl, irWl, distance, dpf) {
+            const redExt = getExtinctionCoefficients(redWl);
+            const irExt = getExtinctionCoefficients(irWl);
+            const pathlength = distance * dpf;
+            
+            const det = (redExt.hbO2 * irExt.hb - redExt.hb * irExt.hbO2);
+            if (Math.abs(det) < 1e-10) return { hbO2: 0, hb: 0, totalHb: 0, saturation: 50 };
+            
+            const hbO2 = (odRed * irExt.hb - odIR * redExt.hb) / (det * pathlength);
+            const hb = (odIR * redExt.hbO2 - odRed * irExt.hbO2) / (det * pathlength);
+            
+            const totalHb = hbO2 + hb;
+            return {
+                hbO2: hbO2 * 1000, // Convert to μM
+                hb: hb * 1000,
+                totalHb: totalHb * 1000,
+                saturation: totalHb > 0 ? (hbO2 / totalHb) * 100 : 50
+            };
+        }
+
+        // Data structures for all channels
+        // Structure: [hemisphere][channelType][wavelength][time]
+        // hemisphere: 'left' or 'right'
+        // channelType: 'short' or 'long'
+        // wavelength: 'red' (660nm), 'nearIr' (730nm), or 'ir' (850nm)
+        let timeData = [];
+        let channelData = {
+            left: {
+                short: { red: [], nearIr: [], ir: [] },
+                long: { red: [], nearIr: [], ir: [] }
+            },
+            right: {
+                short: { red: [], nearIr: [], ir: [] },
+                long: { red: [], nearIr: [], ir: [] }
+            }
+        };
+        let concentrations = {
+            left: { hbO2: [], hb: [], saturation: [] },
+            right: { hbO2: [], hb: [], saturation: [] }
+        };
+        
+        let maxTime = 30;
+        let currentTime = 0;
+        let lastSampleTime = 0;
+        let shortChannelMeans = {
+            left: { red: 0, nearIr: 0, ir: 0 },
+            right: { red: 0, nearIr: 0, ir: 0 }
+        };
+
+        function setup() {
+            const canvas = createCanvas(1400, 1000);
+            canvas.parent('canvas-container');
+            
+            // Initialize all data arrays
+            timeData = [];
+            for (let hem of ['left', 'right']) {
+                for (let chType of ['short', 'long']) {
+                    channelData[hem][chType].red = [];
+                    channelData[hem][chType].nearIr = [];
+                    channelData[hem][chType].ir = [];
+                }
+                concentrations[hem].hbO2 = [];
+                concentrations[hem].hb = [];
+                concentrations[hem].saturation = [];
+            }
+            currentTime = 0;
+            lastSampleTime = 0;
+        }
+
+        function draw() {
+            background(255);
+            
+            // Get control values
+            const redWl = parseInt(document.getElementById('redWavelength').value);
+            const nearIrWl = parseInt(document.getElementById('nearIrWavelength').value);
+            const irWl = parseInt(document.getElementById('irWavelength').value);
+            const longDistance = parseFloat(document.getElementById('longDistance').value);
+            const shortDistance = parseFloat(document.getElementById('shortDistance').value);
+            const dpf = parseFloat(document.getElementById('dpf').value);
+            const heartRate = parseFloat(document.getElementById('heartRate').value);
+            const heartbeatAmp = parseFloat(document.getElementById('heartbeatAmp').value);
+            const noiseLevel = parseFloat(document.getElementById('noiseLevel').value);
+            maxTime = parseInt(document.getElementById('timeScale').value);
+            
+            // Update display values
+            document.getElementById('redWavelengthValue').textContent = redWl + ' nm';
+            document.getElementById('nearIrWavelengthValue').textContent = nearIrWl + ' nm';
+            document.getElementById('irWavelengthValue').textContent = irWl + ' nm';
+            document.getElementById('longDistanceValue').textContent = longDistance.toFixed(1) + ' cm';
+            document.getElementById('shortDistanceValue').textContent = shortDistance.toFixed(1) + ' cm';
+            document.getElementById('dpfValue').textContent = dpf.toFixed(1);
+            document.getElementById('heartRateValue').textContent = heartRate + ' bpm';
+            document.getElementById('heartbeatAmpValue').textContent = heartbeatAmp.toFixed(2);
+            document.getElementById('noiseLevelValue').textContent = noiseLevel.toFixed(3);
+            document.getElementById('timeScaleValue').textContent = maxTime + ' s';
+            
+            // Update time (continuous for smooth display)
+            currentTime += deltaTime / 1000;
+            
+            // Sample at 64 Hz (Muse S Athena PPG sampling rate)
+            if (currentTime - lastSampleTime >= SAMPLE_INTERVAL) {
+                lastSampleTime = currentTime;
+                
+                if (currentTime > maxTime) {
+                    // Reset
+                    currentTime = 0;
+                    lastSampleTime = 0;
+                    timeData = [];
+                    for (let hem of ['left', 'right']) {
+                        for (let chType of ['short', 'long']) {
+                            channelData[hem][chType].red = [];
+                            channelData[hem][chType].nearIr = [];
+                            channelData[hem][chType].ir = [];
+                        }
+                        concentrations[hem].hbO2 = [];
+                        concentrations[hem].hb = [];
+                        concentrations[hem].saturation = [];
+                    }
+                }
+                
+                // Simulate heartbeat (pulsatile signal)
+                const heartFreq = (heartRate / 60.0) * 2 * PI; // Convert bpm to rad/s
+                const heartbeat = heartbeatAmp * Math.sin(heartFreq * currentTime);
+                
+                // Simulate slow physiological variation
+                const slowVariation = 0.05 * Math.sin(currentTime * 0.1);
+                
+                // Generate signals for each hemisphere and channel type
+                for (let hem of ['left', 'right']) {
+                    // Add slight asymmetry between hemispheres
+                    const hemOffset = hem === 'left' ? 0.02 : -0.02;
+                    
+                    // Short channels: higher intensity, mean-centered
+                    const shortRedBase = 0.9 + hemOffset;
+                    const shortNearIrBase = 0.92 + hemOffset;
+                    const shortIrBase = 0.95 + hemOffset;
+                    
+                    const shortRedSignal = shortRedBase + heartbeat + slowVariation + (Math.random() - 0.5) * noiseLevel;
+                    const shortNearIrSignal = shortNearIrBase + heartbeat * 0.95 + slowVariation * 0.9 + (Math.random() - 0.5) * noiseLevel;
+                    const shortIrSignal = shortIrBase + heartbeat * 0.9 + slowVariation * 0.8 + (Math.random() - 0.5) * noiseLevel;
+                    
+                    // Long channels: lower intensity
+                    const longRedBase = 0.6 + hemOffset;
+                    const longNearIrBase = 0.62 + hemOffset;
+                    const longIrBase = 0.65 + hemOffset;
+                    
+                    const longRedSignal = longRedBase + heartbeat * 0.7 + slowVariation + (Math.random() - 0.5) * noiseLevel;
+                    const longNearIrSignal = longNearIrBase + heartbeat * 0.75 + slowVariation * 0.9 + (Math.random() - 0.5) * noiseLevel;
+                    const longIrSignal = longIrBase + heartbeat * 0.6 + slowVariation * 0.8 + (Math.random() - 0.5) * noiseLevel;
+                    
+                    // Store raw signals
+                    channelData[hem].short.red.push(shortRedSignal);
+                    channelData[hem].short.nearIr.push(shortNearIrSignal);
+                    channelData[hem].short.ir.push(shortIrSignal);
+                    channelData[hem].long.red.push(longRedSignal);
+                    channelData[hem].long.nearIr.push(longNearIrSignal);
+                    channelData[hem].long.ir.push(longIrSignal);
+                    
+                    // Calculate running mean for short channels (for mean-centering)
+                    // Use a rolling window or all data for mean calculation
+                    if (channelData[hem].short.red.length > 10) {
+                        // Calculate mean from recent data (more stable)
+                        const windowSize = Math.min(100, channelData[hem].short.red.length);
+                        const redWindow = channelData[hem].short.red.slice(-windowSize);
+                        const nearIrWindow = channelData[hem].short.nearIr.slice(-windowSize);
+                        const irWindow = channelData[hem].short.ir.slice(-windowSize);
+                        shortChannelMeans[hem].red = redWindow.reduce((a, b) => a + b) / redWindow.length;
+                        shortChannelMeans[hem].nearIr = nearIrWindow.reduce((a, b) => a + b) / nearIrWindow.length;
+                        shortChannelMeans[hem].ir = irWindow.reduce((a, b) => a + b) / irWindow.length;
+                    } else if (channelData[hem].short.red.length > 1) {
+                        // Use all data if less than window size
+                        shortChannelMeans[hem].red = channelData[hem].short.red.reduce((a, b) => a + b) / channelData[hem].short.red.length;
+                        shortChannelMeans[hem].nearIr = channelData[hem].short.nearIr.reduce((a, b) => a + b) / channelData[hem].short.nearIr.length;
+                        shortChannelMeans[hem].ir = channelData[hem].short.ir.reduce((a, b) => a + b) / channelData[hem].short.ir.length;
+                    }
+                    
+                    // Calculate OD for long channels
+                    // Use Red (660nm) and Infrared (850nm) for MBLL calculation as user requested
+                    const I0_red = shortChannelMeans[hem].red > 0 ? shortChannelMeans[hem].red : longRedBase;
+                    const I0_ir = shortChannelMeans[hem].ir > 0 ? shortChannelMeans[hem].ir : longIrBase;
+                    
+                    const odRed = calculateOD(longRedSignal, I0_red);
+                    const odIR = calculateOD(longIrSignal, I0_ir);
+                    
+                    // Calculate concentrations from long channels using Red and IR wavelengths
+                    const conc = calculateConcentrations(odRed, odIR, redWl, irWl, longDistance, dpf);
+                    
+                    concentrations[hem].hbO2.push(conc.hbO2);
+                    concentrations[hem].hb.push(conc.hb);
+                    concentrations[hem].saturation.push(conc.saturation);
+                }
+                
+                timeData.push(currentTime);
+                
+                // Keep only recent data (64 Hz * maxTime seconds)
+                const maxSamples = SAMPLING_RATE * maxTime;
+                if (timeData.length > maxSamples) {
+                    timeData.shift();
+                    for (let hem of ['left', 'right']) {
+                        for (let chType of ['short', 'long']) {
+                            channelData[hem][chType].red.shift();
+                            channelData[hem][chType].nearIr.shift();
+                            channelData[hem][chType].ir.shift();
+                        }
+                        concentrations[hem].hbO2.shift();
+                        concentrations[hem].hb.shift();
+                        concentrations[hem].saturation.shift();
+                    }
+                }
+            }
+            
+            // Draw plots
+            const plotHeight = 180;
+            const plotSpacing = 200;
+            let yPos = 30;
+            
+            // Left hemisphere plots - Long channels (all 3 wavelengths)
+            drawPlot(50, yPos, (width - 120) / 2, plotHeight, 'Left: Raw Intensities (Long)', 
+                    timeData, 
+                    [channelData.left.long.red, channelData.left.long.nearIr, channelData.left.long.ir], 
+                    ['Red (660nm)', 'Near-IR (730nm)', 'IR (850nm)'], 
+                    [color(255, 100, 100), color(255, 150, 0), color(255, 100, 255)]);
+            
+            drawPlot(width / 2 + 10, yPos, (width - 120) / 2, plotHeight, 'Right: Raw Intensities (Long)', 
+                    timeData, 
+                    [channelData.right.long.red, channelData.right.long.nearIr, channelData.right.long.ir], 
+                    ['Red (660nm)', 'Near-IR (730nm)', 'IR (850nm)'], 
+                    [color(255, 100, 100), color(255, 150, 0), color(255, 100, 255)]);
+            
+            yPos += plotSpacing;
+            
+            // Short channels (mean-centered) - all 3 wavelengths
+            const leftShortRedCentered = channelData.left.short.red.map((v, i) => 
+                v - (shortChannelMeans.left.red || 0));
+            const leftShortNearIrCentered = channelData.left.short.nearIr.map((v, i) => 
+                v - (shortChannelMeans.left.nearIr || 0));
+            const leftShortIrCentered = channelData.left.short.ir.map((v, i) => 
+                v - (shortChannelMeans.left.ir || 0));
+            const rightShortRedCentered = channelData.right.short.red.map((v, i) => 
+                v - (shortChannelMeans.right.red || 0));
+            const rightShortNearIrCentered = channelData.right.short.nearIr.map((v, i) => 
+                v - (shortChannelMeans.right.nearIr || 0));
+            const rightShortIrCentered = channelData.right.short.ir.map((v, i) => 
+                v - (shortChannelMeans.right.ir || 0));
+            
+            drawPlot(50, yPos, (width - 120) / 2, plotHeight, 'Left: Short Channels (Mean-Centered)', 
+                    timeData, 
+                    [leftShortRedCentered, leftShortNearIrCentered, leftShortIrCentered], 
+                    ['Red (660nm)', 'Near-IR (730nm)', 'IR (850nm)'], 
+                    [color(200, 0, 0), color(200, 100, 0), color(200, 0, 200)]);
+            
+            drawPlot(width / 2 + 10, yPos, (width - 120) / 2, plotHeight, 'Right: Short Channels (Mean-Centered)', 
+                    timeData, 
+                    [rightShortRedCentered, rightShortNearIrCentered, rightShortIrCentered], 
+                    ['Red (660nm)', 'Near-IR (730nm)', 'IR (850nm)'], 
+                    [color(200, 0, 0), color(200, 100, 0), color(200, 0, 200)]);
+            
+            yPos += plotSpacing;
+            
+            // Hemoglobin concentrations
+            drawPlot(50, yPos, (width - 120) / 2, plotHeight, 'Left: Hemoglobin (μM)', 
+                    timeData, 
+                    [concentrations.left.hbO2, concentrations.left.hb], 
+                    ['HbO₂', 'Hb'], 
+                    [color(0, 150, 255), color(255, 100, 100)]);
+            
+            drawPlot(width / 2 + 10, yPos, (width - 120) / 2, plotHeight, 'Right: Hemoglobin (μM)', 
+                    timeData, 
+                    [concentrations.right.hbO2, concentrations.right.hb], 
+                    ['HbO₂', 'Hb'], 
+                    [color(0, 150, 255), color(255, 100, 100)]);
+            
+            yPos += plotSpacing;
+            
+            // Oxygen saturation
+            drawPlot(50, yPos, (width - 120) / 2, plotHeight, 'Left: Saturation (%)', 
+                    timeData, 
+                    [concentrations.left.saturation], 
+                    ['Sat'], 
+                    [color(0, 200, 0)]);
+            
+            drawPlot(width / 2 + 10, yPos, (width - 120) / 2, plotHeight, 'Right: Saturation (%)', 
+                    timeData, 
+                    [concentrations.right.saturation], 
+                    ['Sat'], 
+                    [color(0, 200, 0)]);
+            
+            // Display current values
+            fill(50);
+            textSize(12);
+            textAlign(LEFT);
+            const infoY = height - 100;
+            text(`Time: ${currentTime.toFixed(2)} s | Sampling: ${SAMPLING_RATE} Hz (Muse S Athena)`, 50, infoY);
+            text(`Using Red (${redWl}nm) and IR (${irWl}nm) for MBLL calculation`, 50, infoY + 20);
+            if (concentrations.left.hbO2.length > 0) {
+                const lastIdx = concentrations.left.hbO2.length - 1;
+                text(`Left: HbO₂=${concentrations.left.hbO2[lastIdx].toFixed(1)}μM Hb=${concentrations.left.hb[lastIdx].toFixed(1)}μM Sat=${concentrations.left.saturation[lastIdx].toFixed(1)}%`, 50, infoY + 40);
+                text(`Right: HbO₂=${concentrations.right.hbO2[lastIdx].toFixed(1)}μM Hb=${concentrations.right.hb[lastIdx].toFixed(1)}μM Sat=${concentrations.right.saturation[lastIdx].toFixed(1)}%`, 50, infoY + 60);
+            }
+        }
+
+        function drawPlot(x, y, w, h, title, timeData, dataArrays, labels, colors) {
+            // Background
+            fill(245);
+            stroke(200);
+            rect(x, y, w, h);
+            
+            if (timeData.length < 2) return;
+            
+            // Find ranges
+            let minTime = Math.min(...timeData);
+            let maxTime = Math.max(...timeData);
+            let allValues = dataArrays.flat();
+            let minVal = Math.min(...allValues);
+            let maxVal = Math.max(...allValues);
+            
+            // Add padding
+            const padding = (maxVal - minVal) * 0.1;
+            minVal -= padding;
+            maxVal += padding;
+            
+            // Draw grid
+            stroke(220);
+            strokeWeight(1);
+            for (let i = 0; i <= 5; i++) {
+                const yPos = y + h - (i / 5) * h;
+                line(x, yPos, x + w, yPos);
+            }
+            for (let i = 0; i <= 5; i++) {
+                const xPos = x + (i / 5) * w;
+                line(xPos, y, xPos, y + h);
+            }
+            
+            // Draw data lines
+            for (let i = 0; i < dataArrays.length; i++) {
+                const data = dataArrays[i];
+                if (data.length < 2) continue;
+                
+                stroke(colors[i]);
+                strokeWeight(2);
+                noFill();
+                
+                beginShape();
+                for (let j = 0; j < data.length; j++) {
+                    const xPos = x + map(timeData[j], minTime, maxTime, 0, w);
+                    const yPos = y + h - map(data[j], minVal, maxVal, 0, h);
+                    vertex(xPos, yPos);
+                }
+                endShape();
+            }
+            
+            // Draw title and labels
+            fill(50);
+            textSize(16);
+            textAlign(LEFT, TOP);
+            text(title, x + 10, y + 10);
+            
+            // Draw legend
+            textSize(12);
+            for (let i = 0; i < labels.length; i++) {
+                fill(colors[i]);
+                rect(x + w - 150, y + 15 + i * 20, 15, 10);
+                fill(50);
+                text(labels[i], x + w - 130, y + 12 + i * 20);
+            }
+            
+            // Draw axis labels
+            textSize(10);
+            fill(100);
+            textAlign(CENTER);
+            text('Time (s)', x + w / 2, y + h + 20);
+            
+            // Y-axis label
+            push();
+            translate(x - 30, y + h / 2);
+            rotate(-PI / 2);
+            text(title.includes('Saturation') ? 'Saturation (%)' : title.includes('Concentrations') ? 'Concentration (μM)' : 'Intensity', 0, 0);
+            pop();
+        }
+
+        // Reset data when critical sliders change significantly
+        let lastValues = {};
+        function checkForReset() {
+            const currentValues = {
+                redWl: document.getElementById('redWavelength').value,
+                nearIrWl: document.getElementById('nearIrWavelength').value,
+                irWl: document.getElementById('irWavelength').value,
+                longDistance: document.getElementById('longDistance').value,
+                shortDistance: document.getElementById('shortDistance').value,
+                dpf: document.getElementById('dpf').value
+            };
+            
+            let shouldReset = false;
+            for (let key in currentValues) {
+                if (lastValues[key] && Math.abs(parseFloat(currentValues[key]) - parseFloat(lastValues[key])) > 0.1) {
+                    shouldReset = true;
+                    break;
+                }
+            }
+            
+            if (shouldReset) {
+                currentTime = 0;
+                lastSampleTime = 0;
+                timeData = [];
+                for (let hem of ['left', 'right']) {
+                    for (let chType of ['short', 'long']) {
+                        channelData[hem][chType].red = [];
+                        channelData[hem][chType].nearIr = [];
+                        channelData[hem][chType].ir = [];
+                    }
+                    concentrations[hem].hbO2 = [];
+                    concentrations[hem].hb = [];
+                    concentrations[hem].saturation = [];
+                }
+                shortChannelMeans = {
+                    left: { red: 0, nearIr: 0, ir: 0 },
+                    right: { red: 0, nearIr: 0, ir: 0 }
+                };
+            }
+            
+            lastValues = {...currentValues};
+        }
+
+        // Check for resets periodically
+        setInterval(checkForReset, 100);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,11 @@
+{
+  "id": "biophotons",
+  "title": "Biophotons",
+  "oneLiner": "Exploring measuring of human biophotons with PMTs",
+  "demoUrl": "https://kylemath.github.io.biophotons",
+  "screenshot": "https://raw.githubusercontent.com/kylemath/biophotons/main/screenshot.png",
+  "kind": "project",
+  "categories": ["test"],
+  "tags": ["test"],
+  "status": "published"
+}

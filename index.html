@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biophoton Brain Project - Background Summary</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Biophoton Brain Project</h1>
+            <p class="subtitle">Understanding Ultraweak Photon Emissions from the Human Brain</p>
+        </header>
+
+        <nav class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#what-are-biophotons">What are Biophotons?</a></li>
+                <li><a href="#key-questions">Key Scientific Questions</a></li>
+                <li><a href="#experimental-design">Experimental Design</a></li>
+                <li><a href="#challenges">Measurement Challenges</a></li>
+                <li><a href="#demo">Interactive Demo</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="what-are-biophotons" class="section">
+                <h2>What are Biophotons?</h2>
+                <div class="card">
+                    <h3>Definition</h3>
+                    <p><strong>Biophotons</strong> (also called Ultraweak Photon Emissions, UPEs) are extremely faint light emitted by living tissue in the <strong>UV–visible–near-visible range</strong> (roughly 200–800 nm).</p>
+                    
+                    <div class="highlight-box">
+                        <strong>Intensity:</strong> Typically ~1–1000 photons/cm²/s — many orders of magnitude dimmer than normal room light!
+                    </div>
+
+                    <h3>Mechanism</h3>
+                    <p>Current consensus: Biophotons arise primarily from <strong>oxidative metabolic processes</strong>:</p>
+                    <ul>
+                        <li>Reactive oxygen species (ROS) in mitochondria and other pathways</li>
+                        <li>Excited species like <strong>singlet oxygen (¹O₂)</strong> and <strong>excited carbonyls (R=O*)</strong>, especially from <strong>lipid peroxidation</strong></li>
+                        <li>When these excited molecules relax, they emit photons</li>
+                    </ul>
+
+                    <h3>Recent Research</h3>
+                    <p><strong>Casey et al. (2025, iScience)</strong> measured UPEs from human brains through the skull using photomultiplier tubes (PMTs). Key findings:</p>
+                    <ul>
+                        <li>Brain-derived UPEs can be <strong>distinguished from room background</strong></li>
+                        <li>UPE patterns <strong>change with cognitive state</strong> (eyes open vs closed, auditory tasks)</li>
+                        <li>UPE dynamics <strong>do not simply mirror EEG</strong>, suggesting they reflect slower, metabolic aspects of brain function</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="key-questions" class="section">
+                <h2>Key Scientific Questions</h2>
+                <div class="card">
+                    <div class="question-item">
+                        <h3>1. Color / Wavelength</h3>
+                        <p>In what wavelength range are biophotons emitted? Does the spectrum change with brain state, or are we just measuring total counts?</p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>2. Intensity</h3>
+                        <p>What is the magnitude of photon emission (~photons per cm² per second)? Why are such emissions not visible and require ultra-sensitive detectors?</p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>3. Mechanism</h3>
+                        <p>Which biochemical processes produce the light (ROS, mitochondria, lipid peroxidation)? Why are these emissions considered non-thermal?</p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>4. Light vs Heat</h3>
+                        <p>UPEs are distinct from thermal radiation:
+                        <ul>
+                            <li>Different wavelength range (visible/near-visible vs IR)</li>
+                            <li>Different dependence on oxidative metabolism vs temperature</li>
+                        </ul>
+                        </p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>5. Electromagnetic Environment</h3>
+                        <p>Do static charges or low-frequency electrical fields emit photons that contaminate measurements? Why typical room EM fields (radio/low-frequency) are not directly detected by visible-band PMTs.</p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>6. Instrumentation Drift</h3>
+                        <p>How sensor sensitivity can drift over time. Need for:
+                        <ul>
+                            <li>Dark-count baselines (no subject)</li>
+                            <li>Background detectors facing away from head</li>
+                            <li>Randomized task order</li>
+                            <li>Possible calibration light source</li>
+                        </ul>
+                        </p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>7. Biological Confounds</h3>
+                        <p>Background UPE from skin, hair, scalp, and microbes. We measure total photons from the head region, not "pure brain" photons, and rely on task-dependent changes and head vs background comparisons.</p>
+                    </div>
+
+                    <div class="question-item">
+                        <h3>8. Environmental Light Confounds</h3>
+                        <p>Major extraneous variables: light leaks, windows, monitors, phones, LEDs. Mitigation requires light-tight rooms, no displays, and minimal personnel.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="experimental-design" class="section">
+                <h2>Experimental Design</h2>
+                <div class="card">
+                    <h3>Detectors</h3>
+                    <ul>
+                        <li>3–4 photomultiplier tubes (PMTs) or single-photon-sensitive detectors</li>
+                        <li>Spectral sensitivity ~350–700 nm (visible/near-visible)</li>
+                        <li>Outputs: photon counts per time bin (e.g., counts per 100 ms)</li>
+                    </ul>
+
+                    <h3>Geometry</h3>
+                    <ul>
+                        <li><strong>Head detectors:</strong> At least two PMTs near occipital region (visual cortex) and temporal region(s) (auditory cortex)</li>
+                        <li><strong>Background detectors:</strong> 1–2 PMTs pointing away from head to measure room background</li>
+                    </ul>
+
+                    <h3>Environment</h3>
+                    <ul>
+                        <li>Dark room with no windows or fully blacked-out windows</li>
+                        <li>Doors sealed (no visible light leaks)</li>
+                        <li>All monitors/LEDs off and covered</li>
+                        <li>Optional very dim red setup light (turned off during data collection)</li>
+                    </ul>
+
+                    <h3>Conditions per Participant</h3>
+                    <ol>
+                        <li><strong>Dark adaptation:</strong> 10–15 minutes in the dark</li>
+                        <li><strong>Task blocks</strong> (each ~2 minutes, randomized order):
+                            <ul>
+                                <li>Eyes closed, relaxed (alpha-dominant EEG expected)</li>
+                                <li>Eyes open, fixating in darkness</li>
+                                <li>Auditory task (e.g., detect oddball tones)</li>
+                                <li>Empty-chair baseline (no subject) at start and end</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="highlight-box">
+                        <strong>Sampling rate:</strong> Photon counts sampled at 10 Hz or higher (e.g., 100-ms or 1-s bins)
+                    </div>
+                </div>
+            </section>
+
+            <section id="challenges" class="section">
+                <h2>Measurement Challenges</h2>
+                <div class="card">
+                    <h3>Signal Characteristics</h3>
+                    <ul>
+                        <li>Very low count rates (tens of counts per second per detector)</li>
+                        <li>Poisson-like stochastic processes</li>
+                        <li>Slow fluctuations (<1 Hz) mimicking metabolic rhythms</li>
+                        <li>Subtle task-dependent changes (small percentage differences)</li>
+                    </ul>
+
+                    <h3>Analysis Considerations</h3>
+                    <ul>
+                        <li><strong>Head vs Background:</strong> Compare head detectors to background detectors to isolate brain-specific effects</li>
+                        <li><strong>Drift Correction:</strong> Use empty-chair baselines to detect and correct for instrument drift</li>
+                        <li><strong>Frequency Analysis:</strong> Power spectra reveal slow components (<1 Hz) that may change with task</li>
+                        <li><strong>Statistical Robustness:</strong> Need careful comparison to avoid false effects from drift or non-randomized conditions</li>
+                    </ul>
+
+                    <div class="warning-box">
+                        <strong>⚠️ Common Pitfall:</strong> A naive analysis ignoring drift or background can give misleading results. Always compare head vs background and account for baseline drift!
+                    </div>
+                </div>
+            </section>
+
+            <section id="demo" class="section">
+                <h2>Interactive Demos</h2>
+                <div class="card">
+                    <h3>Understanding Beer-Lambert Law: Systems of Equations & Degrees of Freedom</h3>
+                    <p>The Beer-Lambert Law creates <strong>systems of equations</strong> where we measure light absorption at multiple wavelengths to solve for unknown concentrations. With 2 measurements and 2 unknowns, we have exactly 1 degree of freedom - just enough information to solve uniquely.</p>
+
+                    <div class="math-explanation" style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <strong>The NIRS Equations:</strong><br>
+                        Red light: Absorption₁ = Distance × (ε₁ₒ₂ × [HbO₂] + ε₁ₕb × [Hb])<br>
+                        IR light: Absorption₂ = Distance × (ε₂ₒ₂ × [HbO₂] + ε₂ₕb × [Hb])<br>
+                        <em>2 equations, 2 unknowns → 1 degree of freedom → solvable!</em>
+                    </div>
+
+                    <p>Here are three metaphors showing this equation-solving process, ranked from most illustrative:</p>
+
+                    <div class="metaphor-examples" style="margin: 20px 0;">
+                        <div class="metaphor-item" style="border-left: 4px solid #4CAF50; padding-left: 15px; margin-bottom: 20px;">
+                            <h4 style="color: #2E7D32;">🥇 Most Illustrative: Grocery Store Checkout</h4>
+                            <p>You buy apples ($2 each) and oranges ($3 each). The cashier says: "$11 total and you bought 4 fruits." You instantly know: 3 apples + 1 orange = $11. If they said "2 fruits total," you'd have infinite solutions. The checkout gives you 2 equations (total cost + total items) with 2 unknowns (apple + orange count) - perfect degrees of freedom for a unique solution!</p>
+                        </div>
+
+                        <div class="metaphor-item" style="border-left: 4px solid #FF9800; padding-left: 15px; margin-bottom: 20px;">
+                            <h4 style="color: #E65100;">🥈 Color Mixing for Paint</h4>
+                            <p>To match a target color, you mix red and blue paints. You measure how much red and blue light the mixture absorbs. With absorption data at two wavelengths, you can solve for the amounts of each paint. If both paints absorbed light identically, you'd have a "zero determinant" situation - no unique solution possible.</p>
+                        </div>
+
+                        <div class="metaphor-item" style="border-left: 4px solid #2196F3; padding-left: 15px; margin-bottom: 20px;">
+                            <h4 style="color: #0D47A1;">🥉 Two Scales Problem</h4>
+                            <p>You weigh an object on two different scales. Scale A reads 5kg, Scale B reads 3kg. You know Scale A is accurate but Scale B has a 2kg offset. With these two measurements and knowledge of the offset, you can solve for the true weight. This shows how multiple measurements with known relationships let you separate unknowns.</p>
+                        </div>
+                    </div>
+
+                    <p>Now explore these principles through interactive demonstrations:</p>
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                        <a href="apple_demo.html" class="demo-link">→ Apple Imaging Demo - Understanding Beer-Lambert Law with Colored Apples</a>
+                        <a href="nirs_demo.html" class="demo-link">→ NIRS Oxygenation Demo - Modified Beer-Lambert Law for Brain Imaging</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Biophoton Brain Project - Neuroscience/Psychology Class</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
